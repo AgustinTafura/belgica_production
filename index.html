@@ -2,74 +2,82 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registro de Lote</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>Registro de Producción</h1>
-
-<form id="formLote">
-
-<!-- ================= DATOS LOTE ================= -->
-
-<section>
-  <h3>Datos del Lote</h3>
-
-    <div>
-        <label>Fecha:</label>
-        <input type="date" id="fecha" required>
-    </div>
-
-    <div>
-        <label>N° Lote:</label>
-        <input type="text" id="lote" required>
-    </div>
-    
-</section>
-
-<hr>
-
-<!-- ================= PRODUCCION ================= -->
-
-<section>
-  <h3>Producción de Jarras</h3>
-
-  <label>Total Jarras:</label>
-  <input type="number" id="totalJarras" required min="1">
-
-  <div id="sabores-container">
-    <label>AV</label><input type="number" id="AV" required min="0">
-    <label>CH</label><input type="number" id="CH" required min="0">
-    <label>BA</label><input type="number" id="BA" required min="0">
-    <label>CO</label><input type="number" id="CO" required min="0">
-    <label>CB</label><input type="number" id="CB" required min="0">
-    <label>AM</label><input type="number" id="AM" required min="0">
-    <label>SA</label><input type="number" id="SA" required min="0">
-    <label>VAV</label><input type="number" id="VAV" required min="0">
+<!-- SPINNER -->
+<div id="spinner-overlay">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <p class="spinner-text">Cargando datos...</p>
   </div>
-</section>
+</div>
 
+<!-- APP -->
+<div id="app" style="display:none;">
 
-<hr>
+  <header class="app-header">
+    <h1>Registro de Producción</h1>
+  </header>
 
-<!-- ================= MATERIAS PRIMAS ================= -->
+  <main class="app-main">
+  <form id="formLote">
 
-<section>
-  <h3>Materias Primas Utilizadas</h3>
+    <!-- ================= DATOS LOTE ================= -->
+    <section class="card">
+      <h2 class="section-title">📋 Datos del Lote</h2>
 
-  <div id="materias-container"></div>
+      <div class="campo-grupo">
+        <label class="campo-label">Fecha</label>
+        <input type="date" id="fecha" class="campo-input" required>
+      </div>
 
-  <button type="button" onclick="agregarMateriaSelector()">
-    + Agregar Materia Prima
-  </button>
-</section>
+      <div class="campo-grupo">
+        <label class="campo-label">N° Lote</label>
+        <input type="number" id="lote" class="campo-input" required placeholder="Ej: 105">
+      </div>
 
-<hr>
+      <div id="info-ultimo-lote" class="info-lote"></div>
+    </section>
 
-<button type="submit">Guardar Lote</button>
+    <!-- ================= JARRAS ================= -->
+    <section class="card">
+      <h2 class="section-title">🫙 Producción de Jarras</h2>
 
-</form>
+      <div class="campo-grupo">
+        <label class="campo-label">Total Jarras</label>
+        <input type="number" id="totalJarras" class="campo-input" required min="1" placeholder="Ej: 120">
+      </div>
+
+      <div id="sabores-container"></div>
+
+      <button type="button" class="btn-agregar" onclick="agregarSaborSelector()">
+        + Agregar Sabor
+      </button>
+    </section>
+
+    <!-- ================= MATERIAS ================= -->
+    <section class="card">
+      <h2 class="section-title">🧪 Materias Primas</h2>
+
+      <div id="materias-container"></div>
+
+      <button type="button" class="btn-agregar" onclick="agregarMateriaSelector()">
+        + Agregar Materia Prima
+      </button>
+    </section>
+
+    <div class="submit-area">
+      <button type="submit" id="btn-submit" class="btn-submit">Guardar Lote</button>
+    </div>
+
+  </form>
+  </main>
+
+</div>
 
 <script src="script.js"></script>
 </body>
