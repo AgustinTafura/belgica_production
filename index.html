@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Lote</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Registro de Producción</h1>
+
+<form id="formLote">
+
+<!-- ================= DATOS LOTE ================= -->
+
+<section>
+  <h3>Datos del Lote</h3>
+
+    <div>
+        <label>Fecha:</label>
+        <input type="date" id="fecha" required>
+    </div>
+
+    <div>
+        <label>N° Lote:</label>
+        <input type="text" id="lote" required>
+    </div>
+    
+</section>
+
+<hr>
+
+<!-- ================= PRODUCCION ================= -->
+
+<section>
+  <h3>Producción de Jarras</h3>
+
+  <label>Total Jarras:</label>
+  <input type="number" id="totalJarras" required min="1">
+
+  <div id="sabores-container">
+    <label>AV</label><input type="number" id="AV" required min="0">
+    <label>CH</label><input type="number" id="CH" required min="0">
+    <label>BA</label><input type="number" id="BA" required min="0">
+    <label>CO</label><input type="number" id="CO" required min="0">
+    <label>CB</label><input type="number" id="CB" required min="0">
+    <label>AM</label><input type="number" id="AM" required min="0">
+    <label>SA</label><input type="number" id="SA" required min="0">
+    <label>VAV</label><input type="number" id="VAV" required min="0">
+  </div>
+</section>
+
+
+<hr>
+
+<!-- ================= MATERIAS PRIMAS ================= -->
+
+<section>
+  <h3>Materias Primas Utilizadas</h3>
+
+  <div id="materias-container"></div>
+
+  <button type="button" onclick="agregarMateriaSelector()">
+    + Agregar Materia Prima
+  </button>
+</section>
+
+<hr>
+
+<button type="submit">Guardar Lote</button>
+
+</form>
+
+<script src="script.js"></script>
+</body>
+</html>

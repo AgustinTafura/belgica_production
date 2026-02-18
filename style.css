@@ -1,0 +1,37 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 1100px;
+}
+
+section {
+  margin-bottom: 25px;
+}
+
+.materia-bloque {
+  border: 1px solid #ccc;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: #f9f9f9;
+}
+
+input, select {
+  margin: 5px 5px 5px 0;
+  padding: 6px;
+}
+
+button {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.btn-eliminar {
+  background: #d9534f;
+  color: white;
+  border: none;
+  float: right;
+}
+
+.sabor-item {
+  margin-bottom: 10px;
+}
