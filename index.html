@@ -12,21 +12,52 @@
 <div id="spinner-overlay">
   <div class="spinner-box">
     <div class="spinner"></div>
-    <p class="spinner-text">Cargando datos...</p>
+    <p class="spinner-text">Cargando...</p>
   </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen" style="display:none;">
+  <header class="app-header">
+    <h1>Registro de Producción</h1>
+  </header>
+  <main class="app-main">
+    <div class="card">
+      <h2 class="section-title">🔐 Iniciar sesión</h2>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Usuario</label>
+        <input type="text" id="login-user" class="campo-input"
+               placeholder="Tu usuario" autocomplete="username">
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Contraseña</label>
+        <input type="password" id="login-pass" class="campo-input"
+               placeholder="Tu contraseña" autocomplete="current-password">
+      </div>
+
+      <div id="login-error" class="login-error" style="display:none;"></div>
+
+      <button id="btn-login" class="btn-submit" onclick="handleLogin()">
+        Ingresar
+      </button>
+    </div>
+  </main>
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none;">
-
   <header class="app-header">
-    <h1>Registro de Producción</h1>
+    <div class="header-inner">
+      <h1>Registro de Producción</h1>
+      <button class="btn-logout" onclick="handleLogout()">Salir</button>
+    </div>
   </header>
 
   <main class="app-main">
   <form id="formLote">
 
-    <!-- ================= DATOS LOTE ================= -->
     <section class="card">
       <h2 class="section-title">📋 Datos del Lote</h2>
 
@@ -43,7 +74,6 @@
       <div id="info-ultimo-lote" class="info-lote"></div>
     </section>
 
-    <!-- ================= JARRAS ================= -->
     <section class="card">
       <h2 class="section-title">🫙 Producción de Jarras</h2>
 
@@ -59,7 +89,6 @@
       </button>
     </section>
 
-    <!-- ================= MATERIAS ================= -->
     <section class="card">
       <h2 class="section-title">🧪 Materias Primas</h2>
 
@@ -76,9 +105,9 @@
 
   </form>
   </main>
-
 </div>
 
+<script src="config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

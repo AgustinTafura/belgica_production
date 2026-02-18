@@ -1,4 +1,4 @@
-const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzDoSkNB4UGKJogPfUdSH3kUl14ZSFeovpgik8qKUuCn_cTKiBPnxpe-OVNfqtq0rmW/exec";
+const URL_APPS_SCRIPT = CONFIG.URL_APPS_SCRIPT;
 
 let ultimoLoteBackend = 0;
 let contadorMateria = 0;
@@ -30,6 +30,82 @@ const materiasConfig = {
 // =====================================
 
 window.addEventListener("DOMContentLoaded", () => {
+  const sesionActiva = sessionStorage.getItem("usuario_logueado");
+
+  if (sesionActiva) {
+    cargarDatosIniciales();
+  } else {
+    document.getElementById("spinner-overlay").style.display = "none";
+    document.getElementById("login-screen").style.display = "block";
+  }
+});
+
+
+// =====================================
+// LOGIN
+// =====================================
+
+function handleLogin() {
+  const usuario = document.getElementById("login-user").value.trim();
+  const password = document.getElementById("login-pass").value.trim();
+  const btnLogin = document.getElementById("btn-login");
+  const errorDiv = document.getElementById("login-error");
+
+  if (!usuario || !password) {
+    mostrarErrorLogin("Completá usuario y contraseña.");
+    return;
+  }
+
+  errorDiv.style.display = "none";
+  btnLogin.disabled = true;
+  btnLogin.textContent = "Verificando...";
+
+  fetch(URL_APPS_SCRIPT, {
+    method: "POST",
+    body: JSON.stringify({ action: "login", usuario, password })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "ok") {
+        sessionStorage.setItem("usuario_logueado", usuario);
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("spinner-overlay").style.display = "flex";
+        cargarDatosIniciales();
+      } else {
+        mostrarErrorLogin("Usuario o contraseña incorrectos.");
+        btnLogin.disabled = false;
+        btnLogin.textContent = "Ingresar";
+      }
+    })
+    .catch(() => {
+      mostrarErrorLogin("Error de conexión. Intentá de nuevo.");
+      btnLogin.disabled = false;
+      btnLogin.textContent = "Ingresar";
+    });
+}
+
+function mostrarErrorLogin(msg) {
+  const errorDiv = document.getElementById("login-error");
+  errorDiv.textContent = msg;
+  errorDiv.style.display = "block";
+}
+
+// Enter dispara login
+document.getElementById("login-pass").addEventListener("keydown", e => {
+  if (e.key === "Enter") handleLogin();
+});
+
+function handleLogout() {
+  sessionStorage.removeItem("usuario_logueado");
+  location.reload();
+}
+
+
+// =====================================
+// CARGA INICIAL DE DATOS
+// =====================================
+
+function cargarDatosIniciales() {
   fetch(URL_APPS_SCRIPT)
     .then(res => res.json())
     .then(data => {
@@ -39,7 +115,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const ultimaFechaStr = `${fechaObj.getDate()}/${fechaObj.getMonth() + 1}/${fechaObj.getFullYear()}`;
 
       document.getElementById("info-ultimo-lote").innerHTML =
-        `<span class="badge-info">Último lote registrado: <strong>#${ultimoLoteBackend}</strong> — cocinado el <strong>${ultimaFechaStr}</strong></span>`;
+        `<span class="badge-info">Último lote: <strong>#${ultimoLoteBackend}</strong> — cocinado el <strong>${ultimaFechaStr}</strong></span>`;
 
       document.getElementById("spinner-overlay").style.display = "none";
       document.getElementById("app").style.display = "block";
@@ -48,7 +124,7 @@ window.addEventListener("DOMContentLoaded", () => {
       document.getElementById("spinner-overlay").innerHTML =
         `<div class="spinner-error">Error al conectar. Recargá la página.</div>`;
     });
-});
+}
 
 
 // =====================================
@@ -64,7 +140,7 @@ function agregarSaborSelector() {
   const disponibles = SABORES.filter(s => !getSaboresSeleccionados().includes(s));
 
   if (disponibles.length === 0) {
-    alert("Ya agregaste todos los sabores disponibles.");
+    alert("Ya agregaste todos los sabores.");
     return;
   }
 
@@ -81,7 +157,8 @@ function agregarSaborSelector() {
         <option value="">Seleccionar sabor</option>
         ${disponibles.map(s => `<option value="${s}">${s}</option>`).join("")}
       </select>
-      <input type="number" class="sabor-cantidad campo-input" placeholder="Cant." min="0" value="0" style="display:none;" required>
+      <input type="number" class="sabor-cantidad campo-input"
+             placeholder="Cant." min="0" value="0" style="display:none;" required>
       <button type="button" class="btn-eliminar-sabor" onclick="eliminarSabor(${id})">✕</button>
     </div>
   `;
@@ -91,16 +168,11 @@ function agregarSaborSelector() {
 
 function onSaborChange(select) {
   const input = select.nextElementSibling;
-  if (select.value) {
-    input.style.display = "block";
-  } else {
-    input.style.display = "none";
-  }
+  input.style.display = select.value ? "block" : "none";
 }
 
 function eliminarSabor(id) {
-  const bloque = document.querySelector(`.sabor-bloque[data-id="${id}"]`);
-  if (bloque) bloque.remove();
+  document.querySelector(`.sabor-bloque[data-id="${id}"]`)?.remove();
 }
 
 
@@ -118,7 +190,7 @@ function agregarMateriaSelector() {
   const disponibles = Object.keys(materiasConfig).filter(m => !usadas.includes(m));
 
   if (disponibles.length === 0) {
-    alert("Ya agregaste todas las materias primas disponibles.");
+    alert("Ya agregaste todas las materias primas.");
     return;
   }
 
@@ -150,16 +222,14 @@ function agregarMateriaSelector() {
 }
 
 function eliminarMateria(id) {
-  const bloque = document.querySelector(`.materia-bloque[data-id="${id}"]`);
-  if (bloque) bloque.remove();
+  document.querySelector(`.materia-bloque[data-id="${id}"]`)?.remove();
 }
 
 function renderMateria(id, nombre) {
   if (!nombre) return;
 
   const bloque = document.querySelector(`.materia-bloque[data-id="${id}"]`);
-  const titulo = bloque.querySelector(".bloque-titulo");
-  if (titulo) titulo.textContent = nombre;
+  bloque.querySelector(".bloque-titulo").textContent = nombre;
 
   const detalle = document.getElementById(`materia-detalle-${id}`);
   const marcas = materiasConfig[nombre];
@@ -172,7 +242,8 @@ function renderMateria(id, nombre) {
         ${marcas.map(m => `<option value="${m}">${m}</option>`).join("")}
         <option value="OTRO">OTRO</option>
       </select>
-      <input type="text" class="campo-input" placeholder="Ingresar marca manualmente" style="display:none; margin-top:8px;" required>
+      <input type="text" class="campo-input" placeholder="Ingresar marca manualmente"
+             style="display:none; margin-top:8px;">
     </div>
 
     <div class="campo-grupo">
@@ -223,9 +294,7 @@ function sumarMesesAjustado(fechaStr, meses) {
   const diaOriginal = fecha.getDate();
   const nuevaFecha = new Date(fecha);
   nuevaFecha.setMonth(nuevaFecha.getMonth() + meses);
-  if (nuevaFecha.getDate() !== diaOriginal) {
-    nuevaFecha.setDate(0);
-  }
+  if (nuevaFecha.getDate() !== diaOriginal) nuevaFecha.setDate(0);
   return nuevaFecha;
 }
 
@@ -245,20 +314,13 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
     return;
   }
 
-  // Recolectar jarras dinámicas
   const jarras = {};
   let suma = 0;
-  let saboresValidos = true;
 
   document.querySelectorAll(".sabor-bloque").forEach(bloque => {
     const sabor = bloque.querySelector(".sabor-select").value;
-    const cantidadInput = bloque.querySelector(".sabor-cantidad");
-    const cantidad = Number(cantidadInput.value);
-
-    if (!sabor) {
-      saborValidos = false;
-      return;
-    }
+    const cantidad = Number(bloque.querySelector(".sabor-cantidad").value);
+    if (!sabor) return;
     jarras[sabor] = cantidad;
     suma += cantidad;
   });
@@ -270,11 +332,10 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
 
   const totalIngresado = Number(document.getElementById("totalJarras").value);
   if (suma !== totalIngresado) {
-    alert(`El total ingresado (${totalIngresado}) no coincide con la suma por variedad (${suma}).`);
+    alert(`El total (${totalIngresado}) no coincide con la suma por variedad (${suma}).`);
     return;
   }
 
-  // Cálculo banana
   const gramosBanana =
     ((jarras["BA"] || 0) * 250) +
     ((jarras["CO"] || 0) * 200) +
@@ -282,11 +343,8 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
   const kgBanana = (gramosBanana / 1000).toFixed(2);
   const fechaVto = sumarMesesAjustado(fecha, 7);
 
-  alert(
-    `Se necesitarán ${kgBanana} kg de banana.\n\nVencimiento del lote: ${fechaVto.toLocaleDateString()}`
-  );
+  alert(`Se necesitarán ${kgBanana} kg de banana.\n\nVencimiento: ${fechaVto.toLocaleDateString()}`);
 
-  // Recolectar materias
   const bloques = document.querySelectorAll(".materia-bloque");
 
   if (bloques.length === 0) {
@@ -304,7 +362,6 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
     const file = bloque.querySelector('input[type="file"]').files[0];
 
     const reader = new FileReader();
-
     reader.onload = function (event) {
       const marcaSeleccionada = selects[1].value;
       const marcaFinal = marcaSeleccionada === "OTRO" ? inputs[0].value : marcaSeleccionada;
@@ -319,11 +376,8 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
       });
 
       procesadas++;
-      if (procesadas === bloques.length) {
-        enviarDatos(fecha, lote, materias, jarras);
-      }
+      if (procesadas === bloques.length) enviarDatos(fecha, lote, materias, jarras);
     };
-
     reader.readAsDataURL(file);
   });
 });
@@ -340,13 +394,12 @@ function enviarDatos(fecha, lote, materias, jarras) {
 
   fetch(URL_APPS_SCRIPT, {
     method: "POST",
-    body: JSON.stringify({ fecha, lote, materiasPrimas: materias, jarras })
+    body: JSON.stringify({ action: "guardar", fecha, lote, materiasPrimas: materias, jarras })
   })
     .then(res => res.json())
     .then(response => {
       if (response.status === "error") {
-        console.error(response.message);
-        alert("Error backend: " + response.message);
+        alert("Error: " + response.message);
         btnSubmit.disabled = false;
         btnSubmit.textContent = "Guardar Lote";
         return;

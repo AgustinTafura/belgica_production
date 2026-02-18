@@ -1,0 +1,12 @@
+# Config local con variables sensibles
+config.js
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
