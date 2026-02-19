@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -14,11 +17,12 @@ jobs:
       - name: Generar config.js desde secret
         run: |
           echo "const CONFIG = { URL_APPS_SCRIPT: \"${{ secrets.URL_APPS_SCRIPT }}\" };" > config.js
-          cat config.js  # para verificar en los logs que se generó bien
+          echo "config.js generado:"
+          cat config.js
 
       - name: Deploy a GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
-          exclude_assets: ''  # ← esto hace que ignore el .gitignore y suba config.js
+          exclude_assets: '.gitignore,.github'
