@@ -404,3 +404,85 @@ select.campo-input {
 .btn-logout:active {
   background: rgba(255,255,255,0.3);
 }
+
+/* ========================
+   MODAL PRODUCCIÓN
+   ======================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.modal-titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--color-primary-light);
+}
+
+.modal-dato {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.modal-dato.banana {
+  background: #fffbeb;
+  border: 2px solid #f59e0b;
+}
+
+.modal-dato.vencimiento {
+  background: #f0fdf4;
+  border: 2px solid var(--color-accent);
+}
+
+.modal-icono {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.modal-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-soft);
+  margin-bottom: 4px;
+}
+
+.modal-valor {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.modal-dato.banana .modal-valor {
+  color: #b45309;
+}
+
+.modal-dato.vencimiento .modal-valor {
+  color: var(--color-primary-dark);
+  font-size: 1.1rem;
+}

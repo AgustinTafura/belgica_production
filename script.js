@@ -343,7 +343,7 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
   const kgBanana = (gramosBanana / 1000).toFixed(2);
   const fechaVto = sumarMesesAjustado(fecha, 7);
 
-  alert(`Se necesitarán ${kgBanana} kg de banana.\n\nVencimiento: ${fechaVto.toLocaleDateString()}`);
+  mostrarModalProduccion(kgBanana, fechaVto);
 
   const bloques = document.querySelectorAll(".materia-bloque");
 
@@ -381,6 +381,18 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
     reader.readAsDataURL(file);
   });
 });
+
+function mostrarModalProduccion(kgBanana, fechaVto) {
+  document.getElementById("modal-banana").textContent = `${(kgBanana / 0.6).toFixed(2)} kg`;
+  document.getElementById("modal-vencimiento").textContent = fechaVto.toLocaleDateString("es-AR", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric"
+  });
+  document.getElementById("modal-produccion").style.display = "flex";
+}
+
+function cerrarModal() {
+  document.getElementById("modal-produccion").style.display = "none";
+}
 
 
 // =====================================
