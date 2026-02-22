@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Lote</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- SPINNER -->
+<div id="spinner-overlay">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <p class="spinner-text">Cargando...</p>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen" style="display:none;">
+  <header class="app-header">
+    <h1>Registro de Producción</h1>
+  </header>
+  <main class="app-main">
+    <div class="card">
+      <h2 class="section-title">🔐 Iniciar sesión</h2>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Usuario</label>
+        <input type="text" id="login-user" class="campo-input"
+               placeholder="Tu usuario" autocomplete="username">
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Contraseña</label>
+        <input type="password" id="login-pass" class="campo-input"
+               placeholder="Tu contraseña" autocomplete="current-password">
+      </div>
+
+      <div id="login-error" class="login-error" style="display:none;"></div>
+
+      <button id="btn-login" class="btn-submit" onclick="handleLogin()">
+        Ingresar
+      </button>
+    </div>
+  </main>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+  <header class="app-header">
+    <div class="header-inner">
+      <h1>Registro de Producción</h1>
+      <button class="btn-logout" onclick="handleLogout()">Salir</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+  <form id="formLote">
+
+    <section class="card">
+      <h2 class="section-title">📋 Datos del Lote</h2>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Fecha</label>
+        <input type="date" id="fecha" class="campo-input" required>
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-label">N° Lote</label>
+        <input type="number" id="lote" class="campo-input" required placeholder="Ej: 105">
+      </div>
+
+      <div id="info-ultimo-lote" class="info-lote"></div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">🫙 Producción de Jarras</h2>
+
+      <div class="campo-grupo">
+        <label class="campo-label">Total Jarras</label>
+        <input type="number" id="totalJarras" class="campo-input" required min="1" placeholder="Ej: 120">
+      </div>
+
+      <div id="sabores-container"></div>
+
+      <button type="button" class="btn-agregar" onclick="agregarSaborSelector()">
+        + Agregar Sabor
+      </button>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">🧪 Materias Primas</h2>
+
+      <div id="materias-container"></div>
+
+      <button type="button" class="btn-agregar" onclick="agregarMateriaSelector()">
+        + Agregar Materia Prima
+      </button>
+    </section>
+
+    <div class="submit-area">
+      <button type="submit" id="btn-submit" class="btn-submit">Guardar Lote</button>
+    </div>
+
+  </form>
+  </main>
+</div>
+<!-- MODAL PRODUCCIÓN -->
+<div id="modal-produccion" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <h2 class="modal-titulo">📋 Resumen de Producción</h2>
+
+    <div class="modal-dato banana">
+      <span class="modal-icono">🍌</span>
+      <div>
+        <p class="modal-label">Banana necesaria</p>
+        <p class="modal-valor" id="modal-banana"></p>
+      </div>
+    </div>
+
+    <div class="modal-dato vencimiento">
+      <span class="modal-icono">📅</span>
+      <div>
+        <p class="modal-label">Vencimiento del lote</p>
+        <p class="modal-valor" id="modal-vencimiento"></p>
+      </div>
+    </div>
+
+    <button class="btn-submit" onclick="cerrarModalYEnviar()">Confirmar y guardar →</button>
+  </div>
+</div>
+
+<!-- MODAL ÉXITO -->
+<div id="modal-exito" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="exito-icono">✅</div>
+    <h2 class="modal-titulo">¡Lote guardado!</h2>
+    <p class="exito-desc">El lote fue registrado correctamente en el sistema.</p>
+
+    <button class="btn-submit" onclick="irAWaffles()">
+      Cargar Waffles del día →
+    </button>
+    <button class="btn-agregar" style="margin-top:0;" onclick="location.reload()">
+      Registrar nuevo lote
+    </button>
+  </div>
+</div>
+<script src="config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
