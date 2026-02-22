@@ -1,8 +1,10 @@
 const URL_APPS_SCRIPT = CONFIG.URL_APPS_SCRIPT;
 
 let ultimoLoteBackend = 0;
+let ultimaFechaBackend = "";
 let contadorMateria = 0;
 let contadorSabor = 0;
+let pendingData = null; // guarda datos del form hasta confirmar modal
 
 const SABORES = ["AV", "CH", "BA", "CO", "CB", "AM", "SA", "VAV"];
 
@@ -24,6 +26,12 @@ const materiasConfig = {
   "PROTEINA VEGETAL AISLADA DE SOJA": ["VITATECH"]
 };
 
+// Para limitar la fecha mínima a hoy
+const hoy = new Date();
+const yyyy = hoy.getFullYear();
+const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+const dd = String(hoy.getDate()).padStart(2, '0');
+const hoyStr = `${yyyy}-${mm}-${dd}`;
 
 // =====================================
 // INIT
@@ -31,7 +39,6 @@ const materiasConfig = {
 
 window.addEventListener("DOMContentLoaded", () => {
   const sesionActiva = sessionStorage.getItem("usuario_logueado");
-
   if (sesionActiva) {
     cargarDatosIniciales();
   } else {
@@ -90,9 +97,13 @@ function mostrarErrorLogin(msg) {
   errorDiv.style.display = "block";
 }
 
-// Enter dispara login
-document.getElementById("login-pass").addEventListener("keydown", e => {
-  if (e.key === "Enter") handleLogin();
+document.addEventListener("DOMContentLoaded", () => {
+  const passInput = document.getElementById("login-pass");
+  if (passInput) {
+    passInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") handleLogin();
+    });
+  }
 });
 
 function handleLogout() {
@@ -102,16 +113,21 @@ function handleLogout() {
 
 
 // =====================================
-// CARGA INICIAL DE DATOS
+// CARGA INICIAL
 // =====================================
 
 function cargarDatosIniciales() {
+  // limiar fecha mínima para hoy
+  document.getElementById("fecha").min = hoyStr;
+
   fetch(URL_APPS_SCRIPT)
     .then(res => res.json())
     .then(data => {
+      console.log("Datos iniciales:", data);
       ultimoLoteBackend = data.ultimoLote || 0;
 
       const fechaObj = new Date(data.ultimaFecha);
+      ultimaFechaBackend = data.ultimaFecha;
       const ultimaFechaStr = `${fechaObj.getDate()}/${fechaObj.getMonth() + 1}/${fechaObj.getFullYear()}`;
 
       document.getElementById("info-ultimo-lote").innerHTML =
@@ -270,6 +286,10 @@ function renderMateria(id, nombre) {
       <input type="file" class="campo-input campo-file" accept="image/*" capture="environment" required>
     </div>
   `;
+
+  const inputFecha = detalle.querySelector('input[type="date"].campo-input');
+  inputFecha.min = hoyStr;
+
 }
 
 function toggleMarcaManual(select) {
@@ -300,13 +320,64 @@ function sumarMesesAjustado(fechaStr, meses) {
 
 
 // =====================================
+// MODAL PRODUCCIÓN
+// =====================================
+
+function mostrarModalProduccion(kgBanana, fechaVto) {
+  document.getElementById("modal-banana").textContent = `${(kgBanana / 0.6).toFixed(2)} kg`;
+  document.getElementById("modal-vencimiento").textContent = fechaVto.toLocaleDateString("es-AR", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric"
+  });
+  document.getElementById("modal-produccion").style.display = "flex";
+}
+
+function cerrarModalYEnviar() {
+  document.getElementById("modal-produccion").style.display = "none";
+
+  if (!pendingData) return;
+
+  const { fecha, lote, materias, jarras } = pendingData;
+  enviarDatos(fecha, lote, materias, jarras);
+}
+
+
+// =====================================
+// MODAL ÉXITO → IR A WAFFLES
+// =====================================
+
+function mostrarModalExito(fecha, lote, jarras) {
+  document.getElementById("modal-exito").style.display = "flex";
+
+  // Guardamos en sessionStorage para pasarlos a waffles.html
+  sessionStorage.setItem("waffle_fecha", fecha);
+  sessionStorage.setItem("waffle_lote", lote);
+  sessionStorage.setItem("waffle_jarras", JSON.stringify(jarras));
+}
+
+function irAWaffles() {
+  const fecha  = sessionStorage.getItem("waffle_fecha");
+  const lote   = sessionStorage.getItem("waffle_lote");
+  const jarras = sessionStorage.getItem("waffle_jarras");
+
+  const params = new URLSearchParams({ fecha, lote, jarras });
+  window.location.href = `waffles.html?${params.toString()}`;
+}
+
+
+// =====================================
 // SUBMIT
 // =====================================
 
 document.getElementById("formLote").addEventListener("submit", function (e) {
   e.preventDefault();
 
-  const fecha = document.getElementById("fecha").value;
+  const fechaStr = document.getElementById("fecha").value;
+
+  const [anio, mes, dia] = fechaStr.split("-").map(Number);
+
+  // Esto crea la fecha en hora LOCAL (Argentina)
+  const fecha = new Date(anio, mes - 1, dia);
+
   const lote = Number(document.getElementById("lote").value);
 
   if (lote <= ultimoLoteBackend) {
@@ -340,59 +411,50 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
     ((jarras["BA"] || 0) * 250) +
     ((jarras["CO"] || 0) * 200) +
     ((jarras["CB"] || 0) * 200);
-  const kgBanana = (gramosBanana / 1000).toFixed(2);
+  const kgBanana = (gramosBanana / 1000);
   const fechaVto = sumarMesesAjustado(fecha, 7);
 
-  mostrarModalProduccion(kgBanana, fechaVto);
-
+  // Recolectar materias y guardar todo en pendingData
   const bloques = document.querySelectorAll(".materia-bloque");
 
-  if (bloques.length === 0) {
-    enviarDatos(fecha, lote, [], jarras);
-    return;
-  }
+  const procesarMaterias = (callback) => {
+    if (bloques.length === 0) return callback([]);
 
-  const materias = [];
-  let procesadas = 0;
+    const materias = [];
+    let procesadas = 0;
 
-  bloques.forEach(bloque => {
-    const nombre = bloque.querySelector(".materia-select").value;
-    const selects = bloque.querySelectorAll("select");
-    const inputs = bloque.querySelectorAll("input");
-    const file = bloque.querySelector('input[type="file"]').files[0];
+    bloques.forEach(bloque => {
+      const nombre = bloque.querySelector(".materia-select").value;
+      const selects = bloque.querySelectorAll("select");
+      const inputs = bloque.querySelectorAll("input");
+      const file = bloque.querySelector('input[type="file"]').files[0];
 
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      const marcaSeleccionada = selects[1].value;
-      const marcaFinal = marcaSeleccionada === "OTRO" ? inputs[0].value : marcaSeleccionada;
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const marcaSeleccionada = selects[1].value;
+        const marcaFinal = marcaSeleccionada === "OTRO" ? inputs[0].value : marcaSeleccionada;
 
-      materias.push({
-        nombre,
-        marca: marcaFinal,
-        loteProveedor: inputs[1].value,
-        vencimiento: inputs[2].value,
-        remanente: selects[2].value,
-        imagenBase64: event.target.result
-      });
+        materias.push({
+          nombre,
+          marca: marcaFinal,
+          loteProveedor: inputs[1].value,
+          vencimiento: inputs[2].value,
+          remanente: selects[2].value,
+          imagenBase64: event.target.result
+        });
 
-      procesadas++;
-      if (procesadas === bloques.length) enviarDatos(fecha, lote, materias, jarras);
-    };
-    reader.readAsDataURL(file);
+        procesadas++;
+        if (procesadas === bloques.length) callback(materias);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  procesarMaterias((materias) => {
+    pendingData = { fecha, lote, materias, jarras };
+    mostrarModalProduccion(kgBanana, fechaVto);
   });
 });
-
-function mostrarModalProduccion(kgBanana, fechaVto) {
-  document.getElementById("modal-banana").textContent = `${(kgBanana / 0.6).toFixed(2)} kg`;
-  document.getElementById("modal-vencimiento").textContent = fechaVto.toLocaleDateString("es-AR", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric"
-  });
-  document.getElementById("modal-produccion").style.display = "flex";
-}
-
-function cerrarModal() {
-  document.getElementById("modal-produccion").style.display = "none";
-}
 
 
 // =====================================
@@ -414,14 +476,15 @@ function enviarDatos(fecha, lote, materias, jarras) {
         alert("Error: " + response.message);
         btnSubmit.disabled = false;
         btnSubmit.textContent = "Guardar Lote";
+        pendingData = null;
         return;
       }
-      alert("✅ Lote guardado correctamente");
-      location.reload();
+      mostrarModalExito(fecha, lote, jarras);
     })
     .catch(() => {
       alert("Error al guardar. Intentá de nuevo.");
       btnSubmit.disabled = false;
       btnSubmit.textContent = "Guardar Lote";
+      pendingData = null;
     });
 }

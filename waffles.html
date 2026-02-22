@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Waffles</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="spinner-overlay">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <p class="spinner-text">Cargando...</p>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <header class="app-header">
+    <div class="header-inner">
+      <h1>🧇 Registro de Waffles</h1>
+      <a href="index.html" class="btn-logout">← Volver</a>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- BUSCAR POR FECHA (si no vienen params) -->
+    <section id="seccion-buscar" class="card" style="display:none;">
+      <h2 class="section-title">🔍 Buscar producción por fecha</h2>
+      <p class="campo-label" style="color: var(--color-text-soft); font-size:0.9rem; text-transform:none;">
+        No se recibieron datos de producción. Ingresá la fecha para buscar el lote correspondiente.
+      </p>
+      <div class="campo-grupo">
+        <label class="campo-label">Fecha de producción</label>
+        <input type="date" id="input-fecha-buscar" class="campo-input">
+      </div>
+      <div id="buscar-error" class="login-error" style="display:none;"></div>
+      <button class="btn-submit" onclick="buscarPorFecha()">Buscar →</button>
+    </section>
+
+    <!-- INFO DEL LOTE -->
+    <section id="seccion-info" class="card" style="display:none;">
+      <h2 class="section-title">📋 Datos del Lote</h2>
+      <div id="info-lote-waffle" class="badge-info"></div>
+    </section>
+
+    <!-- FORM WAFFLES -->
+    <section id="seccion-form" class="card" style="display:none;">
+      <h2 class="section-title">🧇 Producción de Waffles</h2>
+      <p class="waffle-desc">Ingresá los packs efectivos por sabor. La productividad se calcula automáticamente.</p>
+
+      <div class="waffle-tabla-header">
+        <span>Sabor</span>
+        <span>Jarras</span>
+        <span>Packs efectivos</span>
+        <span>Productividad</span>
+      </div>
+
+      <div id="waffle-filas"></div>
+
+      <div class="waffle-total-box">
+        <span>Total productividad general</span>
+        <span id="productividad-total" class="prod-valor">—</span>
+      </div>
+    </section>
+
+    <div id="submit-area-waffle" class="submit-area" style="display:none;">
+      <button class="btn-submit" onclick="guardarWaffles()">Guardar Waffles</button>
+    </div>
+
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="waffles.js"></script>
+</body>
+</html>
