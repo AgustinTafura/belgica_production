@@ -1,7 +1,7 @@
 const URL_APPS_SCRIPT = CONFIG.URL_APPS_SCRIPT;
 const PACKS_POR_JARRA = 6;
 
-let datosLote = null; // { fecha, lote, jarras }
+let datosLote = null;
 
 
 // =====================================
@@ -37,6 +37,28 @@ function mostrarBusqueda() {
 
 
 // =====================================
+// TABS BÚSQUEDA
+// =====================================
+
+function switchTab(tab) {
+  const tabs = document.querySelectorAll(".buscar-tab");
+  tabs.forEach(t => t.classList.remove("activo"));
+
+  document.getElementById("buscar-error").style.display = "none";
+
+  if (tab === "fecha") {
+    document.getElementById("tab-fecha").style.display = "block";
+    document.getElementById("tab-lote").style.display = "none";
+    tabs[0].classList.add("activo");
+  } else {
+    document.getElementById("tab-fecha").style.display = "none";
+    document.getElementById("tab-lote").style.display = "block";
+    tabs[1].classList.add("activo");
+  }
+}
+
+
+// =====================================
 // BUSCAR POR FECHA
 // =====================================
 
@@ -51,15 +73,44 @@ function buscarPorFecha() {
   }
 
   errorDiv.style.display = "none";
+  buscarProduccion(`${URL_APPS_SCRIPT}?action=getByFecha&fecha=${fecha}`);
+}
+
+
+// =====================================
+// BUSCAR POR LOTE
+// =====================================
+
+function buscarPorLote() {
+  const lote = document.getElementById("input-lote-buscar").value.trim();
+  const errorDiv = document.getElementById("buscar-error");
+
+  if (!lote) {
+    errorDiv.textContent = "Ingresá un número de lote.";
+    errorDiv.style.display = "block";
+    return;
+  }
+
+  errorDiv.style.display = "none";
+  buscarProduccion(`${URL_APPS_SCRIPT}?action=getByLote&lote=${lote}`);
+}
+
+
+// =====================================
+// FETCH COMÚN
+// =====================================
+
+function buscarProduccion(url) {
+  const errorDiv = document.getElementById("buscar-error");
   document.getElementById("spinner-overlay").style.display = "flex";
 
-  fetch(`${URL_APPS_SCRIPT}?action=getByFecha&fecha=${fecha}`)
+  fetch(url)
     .then(res => res.json())
     .then(data => {
       document.getElementById("spinner-overlay").style.display = "none";
 
       if (data.status === "error") {
-        errorDiv.textContent = data.message || "No se encontró producción para esa fecha.";
+        errorDiv.textContent = data.message || "No se encontró producción.";
         errorDiv.style.display = "block";
         return;
       }
@@ -83,7 +134,6 @@ function buscarPorFecha() {
 function mostrarForm(datos) {
   const { fecha, lote, jarras } = datos;
 
-  // Info lote
   const fechaObj = new Date(fecha + "T12:00:00");
   const fechaStr = fechaObj.toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
   document.getElementById("info-lote-waffle").innerHTML =
@@ -93,7 +143,6 @@ function mostrarForm(datos) {
   document.getElementById("seccion-form").style.display = "block";
   document.getElementById("submit-area-waffle").style.display = "block";
 
-  // Filas por sabor
   const container = document.getElementById("waffle-filas");
   container.innerHTML = "";
 
@@ -156,11 +205,10 @@ function calcularTotalProductividad() {
     const sabor = fila.getAttribute("data-sabor");
     const jarras = datosLote.jarras[sabor];
     const packsInput = fila.querySelector(".waffle-packs");
-    const packs = Number(packsInput.value);
 
     if (!packsInput.value) { completo = false; return; }
 
-    totalPacks += packs;
+    totalPacks += Number(packsInput.value);
     totalEsperado += jarras * PACKS_POR_JARRA;
   });
 

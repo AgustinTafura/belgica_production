@@ -27,16 +27,33 @@
 
     <!-- BUSCAR POR FECHA (si no vienen params) -->
     <section id="seccion-buscar" class="card" style="display:none;">
-      <h2 class="section-title">🔍 Buscar producción por fecha</h2>
-      <p class="campo-label" style="color: var(--color-text-soft); font-size:0.9rem; text-transform:none;">
-        No se recibieron datos de producción. Ingresá la fecha para buscar el lote correspondiente.
+      <h2 class="section-title">🔍 Buscar producción</h2>
+      <p style="color: var(--color-text-soft); font-size:0.9rem;">
+        Buscá por fecha o por número de lote.
       </p>
-      <div class="campo-grupo">
-        <label class="campo-label">Fecha de producción</label>
-        <input type="date" id="input-fecha-buscar" class="campo-input">
+
+      <div class="buscar-tabs">
+        <button class="buscar-tab activo" onclick="switchTab('fecha')">Por fecha</button>
+        <button class="buscar-tab" onclick="switchTab('lote')">Por lote</button>
       </div>
+
+      <div id="tab-fecha">
+        <div class="campo-grupo">
+          <label class="campo-label">Fecha de producción</label>
+          <input type="date" id="input-fecha-buscar" class="campo-input">
+        </div>
+        <button class="btn-submit" onclick="buscarPorFecha()">Buscar →</button>
+      </div>
+
+      <div id="tab-lote" style="display:none;">
+        <div class="campo-grupo">
+          <label class="campo-label">N° de Lote</label>
+          <input type="number" id="input-lote-buscar" class="campo-input" placeholder="Ej: 105">
+        </div>
+        <button class="btn-submit" onclick="buscarPorLote()">Buscar →</button>
+      </div>
+
       <div id="buscar-error" class="login-error" style="display:none;"></div>
-      <button class="btn-submit" onclick="buscarPorFecha()">Buscar →</button>
     </section>
 
     <!-- INFO DEL LOTE -->

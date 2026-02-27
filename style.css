@@ -620,3 +620,31 @@ select.campo-input {
   color: var(--color-text-soft);
   line-height: 1.4;
 }
+
+/* ========================
+   BUSCAR TABS
+   ======================== */
+.buscar-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.buscar-tab {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-soft);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.buscar-tab.activo {
+  border-color: var(--color-accent);
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
