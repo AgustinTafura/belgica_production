@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de Lote</title>
+  <title>Registro de Producción</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -46,12 +46,47 @@
   </main>
 </div>
 
-<!-- APP -->
+<!-- HOME -->
+<div id="home-screen" style="display:none;">
+  <header class="app-header">
+    <div class="header-inner">
+      <h1>Belgica 🧇</h1>
+      <button class="btn-logout" onclick="handleLogout()">Salir</button>
+    </div>
+  </header>
+  <main class="app-main">
+
+    <div id="info-ultimo-lote-home" class="info-lote"></div>
+
+    <div class="card home-card">
+      <h2 class="section-title">¿Qué querés registrar?</h2>
+
+      <button class="btn-home" onclick="irALote()">
+        <span class="btn-home-icono">📋</span>
+        <div>
+          <p class="btn-home-titulo">Cargar Lote</p>
+          <p class="btn-home-desc">Registrá materias primas, jarras y datos del lote de hoy</p>
+        </div>
+      </button>
+
+      <button class="btn-home" onclick="window.location.href='waffles.html'">
+        <span class="btn-home-icono">🧇</span>
+        <div>
+          <p class="btn-home-titulo">Cargar Producción</p>
+          <p class="btn-home-desc">Registrá los packs de waffles producidos y calculá la productividad</p>
+        </div>
+      </button>
+    </div>
+
+  </main>
+</div>
+
+<!-- APP (FORM LOTE) -->
 <div id="app" style="display:none;">
   <header class="app-header">
     <div class="header-inner">
-      <h1>Registro de Producción</h1>
-      <button class="btn-logout" onclick="handleLogout()">Salir</button>
+      <h1>Cargar Lote</h1>
+      <button class="btn-logout" onclick="volverHome()">← Volver</button>
     </div>
   </header>
 
@@ -106,6 +141,7 @@
   </form>
   </main>
 </div>
+
 <!-- MODAL PRODUCCIÓN -->
 <div id="modal-produccion" class="modal-overlay" style="display:none;">
   <div class="modal-card">
@@ -141,11 +177,12 @@
     <button class="btn-submit" onclick="irAWaffles()">
       Cargar Waffles del día →
     </button>
-    <button class="btn-agregar" style="margin-top:0;" onclick="location.reload()">
-      Registrar nuevo lote
+    <button class="btn-agregar" style="margin-top:0;" onclick="volverHome()">
+      Volver al inicio
     </button>
   </div>
 </div>
+
 <script src="config.js"></script>
 <script src="script.js"></script>
 </body>

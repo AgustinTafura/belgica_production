@@ -4,7 +4,7 @@ let ultimoLoteBackend = 0;
 let ultimaFechaBackend = "";
 let contadorMateria = 0;
 let contadorSabor = 0;
-let pendingData = null; // guarda datos del form hasta confirmar modal
+let pendingData = null;
 
 const SABORES = ["AV", "CH", "BA", "CO", "CB", "AM", "SA", "VAV"];
 
@@ -26,12 +26,12 @@ const materiasConfig = {
   "PROTEINA VEGETAL AISLADA DE SOJA": ["VITATECH"]
 };
 
-// Para limitar la fecha mínima a hoy
 const hoy = new Date();
 const yyyy = hoy.getFullYear();
 const mm = String(hoy.getMonth() + 1).padStart(2, '0');
 const dd = String(hoy.getDate()).padStart(2, '0');
 const hoyStr = `${yyyy}-${mm}-${dd}`;
+
 
 // =====================================
 // INIT
@@ -113,33 +113,49 @@ function handleLogout() {
 
 
 // =====================================
-// CARGA INICIAL
+// CARGA INICIAL → muestra HOME
 // =====================================
 
 function cargarDatosIniciales() {
-  // limiar fecha mínima para hoy
-  document.getElementById("fecha").min = hoyStr;
-
   fetch(URL_APPS_SCRIPT)
     .then(res => res.json())
     .then(data => {
-      console.log("Datos iniciales:", data);
       ultimoLoteBackend = data.ultimoLote || 0;
+      ultimaFechaBackend = data.ultimaFecha;
 
       const fechaObj = new Date(data.ultimaFecha);
-      ultimaFechaBackend = data.ultimaFecha;
       const ultimaFechaStr = `${fechaObj.getDate()}/${fechaObj.getMonth() + 1}/${fechaObj.getFullYear()}`;
 
-      document.getElementById("info-ultimo-lote").innerHTML =
-        `<span class="badge-info">Último lote: <strong>#${ultimoLoteBackend}</strong> — cocinado el <strong>${ultimaFechaStr}</strong></span>`;
+      const badgeHTML = `<span class="badge-info">Último lote: <strong>#${ultimoLoteBackend}</strong> — cocinado el <strong>${ultimaFechaStr}</strong></span>`;
+
+      // Mostrar badge tanto en home como en el form
+      document.getElementById("info-ultimo-lote-home").innerHTML = badgeHTML;
+      document.getElementById("info-ultimo-lote").innerHTML = badgeHTML;
 
       document.getElementById("spinner-overlay").style.display = "none";
-      document.getElementById("app").style.display = "block";
+      document.getElementById("home-screen").style.display = "block";
     })
     .catch(() => {
       document.getElementById("spinner-overlay").innerHTML =
         `<div class="spinner-error">Error al conectar. Recargá la página.</div>`;
     });
+}
+
+
+// =====================================
+// NAVEGACIÓN HOME ↔ FORM
+// =====================================
+
+function irALote() {
+  document.getElementById("home-screen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("fecha").min = hoyStr;
+}
+
+function volverHome() {
+  document.getElementById("app").style.display = "none";
+  document.getElementById("modal-exito").style.display = "none";
+  document.getElementById("home-screen").style.display = "block";
 }
 
 
@@ -289,7 +305,6 @@ function renderMateria(id, nombre) {
 
   const inputFecha = detalle.querySelector('input[type="date"].campo-input');
   inputFecha.min = hoyStr;
-
 }
 
 function toggleMarcaManual(select) {
@@ -325,30 +340,25 @@ function sumarMesesAjustado(fechaStr, meses) {
 
 function mostrarModalProduccion(kgBanana, fechaVto) {
   document.getElementById("modal-banana").textContent = `${(kgBanana / 0.6).toFixed(2)} kg`;
-  document.getElementById("modal-vencimiento").textContent = fechaVto.toLocaleDateString("es-AR", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric"
-  });
+  document.getElementById("modal-vencimiento").textContent =
+  fechaVto.toLocaleDateString("es-AR");
   document.getElementById("modal-produccion").style.display = "flex";
 }
 
 function cerrarModalYEnviar() {
   document.getElementById("modal-produccion").style.display = "none";
-
   if (!pendingData) return;
-
-  const { fecha, lote, materias, jarras } = pendingData;
-  enviarDatos(fecha, lote, materias, jarras);
+  const { fecha, lote, materias, jarras, fechaVto } = pendingData; // ← agregar fechaVto
+  enviarDatos(fecha, lote, materias, jarras, fechaVto);
 }
 
 
 // =====================================
-// MODAL ÉXITO → IR A WAFFLES
+// MODAL ÉXITO
 // =====================================
 
 function mostrarModalExito(fecha, lote, jarras) {
   document.getElementById("modal-exito").style.display = "flex";
-
-  // Guardamos en sessionStorage para pasarlos a waffles.html
   sessionStorage.setItem("waffle_fecha", fecha);
   sessionStorage.setItem("waffle_lote", lote);
   sessionStorage.setItem("waffle_jarras", JSON.stringify(jarras));
@@ -358,9 +368,9 @@ function irAWaffles() {
   const fecha  = sessionStorage.getItem("waffle_fecha");
   const lote   = sessionStorage.getItem("waffle_lote");
   const jarras = sessionStorage.getItem("waffle_jarras");
-
   const params = new URLSearchParams({ fecha, lote, jarras });
-  window.location.href = `waffles.html?${params.toString()}`;
+  // window.location.href = `waffles.html?${params.toString()}`;
+  window.location.href = `waffles.html?`;
 }
 
 
@@ -372,12 +382,8 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
   e.preventDefault();
 
   const fechaStr = document.getElementById("fecha").value;
-
   const [anio, mes, dia] = fechaStr.split("-").map(Number);
-
-  // Esto crea la fecha en hora LOCAL (Argentina)
   const fecha = new Date(anio, mes - 1, dia);
-
   const lote = Number(document.getElementById("lote").value);
 
   if (lote <= ultimoLoteBackend) {
@@ -411,10 +417,9 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
     ((jarras["BA"] || 0) * 250) +
     ((jarras["CO"] || 0) * 200) +
     ((jarras["CB"] || 0) * 200);
-  const kgBanana = (gramosBanana / 1000);
+  const kgBanana = gramosBanana / 1000;
   const fechaVto = sumarMesesAjustado(fecha, 7);
 
-  // Recolectar materias y guardar todo en pendingData
   const bloques = document.querySelectorAll(".materia-bloque");
 
   const procesarMaterias = (callback) => {
@@ -451,7 +456,7 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
   };
 
   procesarMaterias((materias) => {
-    pendingData = { fecha, lote, materias, jarras };
+    pendingData = { fecha, lote, materias, jarras, fechaVto }; // ← agregar fechaVto
     mostrarModalProduccion(kgBanana, fechaVto);
   });
 });
@@ -461,14 +466,21 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
 // ENVÍO
 // =====================================
 
-function enviarDatos(fecha, lote, materias, jarras) {
+function enviarDatos(fecha, lote, materias, jarras, fechaVto) {
   const btnSubmit = document.getElementById("btn-submit");
   btnSubmit.disabled = true;
   btnSubmit.textContent = "Guardando...";
 
   fetch(URL_APPS_SCRIPT, {
     method: "POST",
-    body: JSON.stringify({ action: "guardar", fecha, lote, materiasPrimas: materias, jarras })
+    body: JSON.stringify({
+      action: "guardar",
+      fecha,
+      lote,
+      materiasPrimas: materias,
+      jarras,
+      fechaVto: fechaVto.toISOString() // ← enviar como string ISO
+    })
   })
     .then(res => res.json())
     .then(response => {

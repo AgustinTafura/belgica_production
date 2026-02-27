@@ -219,16 +219,19 @@ function guardarWaffles() {
     .then(res => res.json())
     .then(response => {
       if (response.status === "error") {
-        alert("Error: " + response.message);
+        document.getElementById("modal-error-msg").textContent =
+          response.message || "Ocurrió un error al guardar la producción.";
+        document.getElementById("modal-error-waffle").style.display = "flex";
         btnGuardar.disabled = false;
         btnGuardar.textContent = "Guardar Waffles";
         return;
       }
-      alert("✅ Waffles guardados correctamente");
-      window.location.href = "index.html";
+      document.getElementById("modal-exito-waffle").style.display = "flex";
     })
     .catch(() => {
-      alert("Error al guardar. Intentá de nuevo.");
+      document.getElementById("modal-error-msg").textContent =
+        "Error de conexión. Verificá tu internet e intentá de nuevo.";
+      document.getElementById("modal-error-waffle").style.display = "flex";
       btnGuardar.disabled = false;
       btnGuardar.textContent = "Guardar Waffles";
     });
