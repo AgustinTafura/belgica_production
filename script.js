@@ -422,38 +422,36 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
 
   const bloques = document.querySelectorAll(".materia-bloque");
 
-  const procesarMaterias = (callback) => {
-    if (bloques.length === 0) return callback([]);
+const procesarMaterias = (callback) => {
+  if (bloques.length === 0) return callback([]);
 
-    const materias = [];
-    let procesadas = 0;
+  const materias = [];
+  let procesadas = 0;
 
-    bloques.forEach(bloque => {
-      const nombre = bloque.querySelector(".materia-select").value;
-      const selects = bloque.querySelectorAll("select");
-      const inputs = bloque.querySelectorAll("input");
-      const file = bloque.querySelector('input[type="file"]').files[0];
+  bloques.forEach(bloque => {
+    const nombre = bloque.querySelector(".materia-select").value;
+    const selects = bloque.querySelectorAll("select");
+    const inputs = bloque.querySelectorAll("input");
+    const file = bloque.querySelector('input[type="file"]').files[0];
 
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        const marcaSeleccionada = selects[1].value;
-        const marcaFinal = marcaSeleccionada === "OTRO" ? inputs[0].value : marcaSeleccionada;
+    comprimirImagen(file, 800, 0.7, (base64Comprimida) => {
+      const marcaSeleccionada = selects[1].value;
+      const marcaFinal = marcaSeleccionada === "OTRO" ? inputs[0].value : marcaSeleccionada;
 
-        materias.push({
-          nombre,
-          marca: marcaFinal,
-          loteProveedor: inputs[1].value,
-          vencimiento: inputs[2].value,
-          remanente: selects[2].value,
-          imagenBase64: event.target.result
-        });
+      materias.push({
+        nombre,
+        marca: marcaFinal,
+        loteProveedor: inputs[1].value,
+        vencimiento: inputs[2].value,
+        remanente: selects[2].value,
+        imagenBase64: base64Comprimida
+      });
 
-        procesadas++;
-        if (procesadas === bloques.length) callback(materias);
-      };
-      reader.readAsDataURL(file);
+      procesadas++;
+      if (procesadas === bloques.length) callback(materias);
     });
-  };
+  });
+};
 
   procesarMaterias((materias) => {
     pendingData = { fecha, lote, materias, jarras, fechaVto }; // ← agregar fechaVto
@@ -499,4 +497,44 @@ function enviarDatos(fecha, lote, materias, jarras, fechaVto) {
       btnSubmit.textContent = "Guardar Lote";
       pendingData = null;
     });
+}
+
+// =====================================
+// COMPRIMIR IMAGEN ANTES DE ENVIAR
+// maxWidth: ancho máximo en px
+// quality: 0.0 a 1.0
+// =====================================
+
+function comprimirImagen(file, maxWidth, quality, callback) {
+  const reader = new FileReader();
+
+  reader.onload = function(event) {
+    const img = new Image();
+
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+
+      let width  = img.width;
+      let height = img.height;
+
+      // Redimensionar manteniendo proporción
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width  = maxWidth;
+      }
+
+      canvas.width  = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const base64 = canvas.toDataURL("image/jpeg", quality);
+      callback(base64);
+    };
+
+    img.src = event.target.result;
+  };
+
+  reader.readAsDataURL(file);
 }
