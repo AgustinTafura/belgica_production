@@ -386,10 +386,10 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
   const fecha = new Date(anio, mes - 1, dia);
   const lote = Number(document.getElementById("lote").value);
 
-  if (lote <= ultimoLoteBackend) {
-    alert(`El lote debe ser mayor a ${ultimoLoteBackend}`);
-    return;
-  }
+  // if (lote <= ultimoLoteBackend) {
+  //   alert(`El lote debe ser mayor a ${ultimoLoteBackend}`);
+  //   return;
+  // }
 
   const jarras = {};
   let suma = 0;
