@@ -128,17 +128,67 @@ function cargarDatosIniciales() {
 
       const badgeHTML = `<span class="badge-info">Último lote: <strong>#${ultimoLoteBackend}</strong> — cocinado el <strong>${ultimaFechaStr}</strong></span>`;
 
-      // Mostrar badge tanto en home como en el form
       document.getElementById("info-ultimo-lote-home").innerHTML = badgeHTML;
       document.getElementById("info-ultimo-lote").innerHTML = badgeHTML;
 
       document.getElementById("spinner-overlay").style.display = "none";
       document.getElementById("home-screen").style.display = "block";
+
+      cargarUltimosLotes();
     })
     .catch(() => {
       document.getElementById("spinner-overlay").innerHTML =
         `<div class="spinner-error">Error al conectar. Recargá la página.</div>`;
     });
+}
+
+
+function cargarUltimosLotes() {
+  const cont = document.getElementById("ultimos-lotes-lista");
+  if (!cont) return;
+
+  fetch(`${URL_APPS_SCRIPT}?action=getUltimosLotes&cantidad=5`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data || data.status !== "ok" || !data.lotes.length) {
+        cont.innerHTML = `<p class="ultimos-vacio">No hay lotes cargados todavía.</p>`;
+        return;
+      }
+      cont.innerHTML = data.lotes.map(renderLoteCard).join("");
+    })
+    .catch(() => {
+      cont.innerHTML = `<p class="ultimos-vacio">No se pudieron cargar los últimos lotes.</p>`;
+    });
+}
+
+
+function renderLoteCard(l) {
+  const f = new Date(l.fecha + "T12:00:00");
+  const fechaStr = `${String(f.getDate()).padStart(2,"0")}/${String(f.getMonth()+1).padStart(2,"0")}/${f.getFullYear()}`;
+
+  const saboresDetalle = Object.entries(l.jarras).map(([s, j]) => {
+    const packs = l.packs[s];
+    const packsTxt = packs ? ` · <strong>${packs}</strong> pk` : "";
+    return `<span class="lote-sabor"><span class="lote-sabor-nombre">${s}</span> <span class="lote-sabor-detalle">${j} jr${packsTxt}</span></span>`;
+  }).join("");
+
+  const sinSabores = !saboresDetalle ? `<span class="lote-sin-detalle">Sin sabores cargados</span>` : "";
+
+  return `
+    <button class="lote-card" onclick="irAEditar(${l.lote})">
+      <div class="lote-card-header">
+        <span class="lote-numero">#${l.lote}</span>
+        <span class="lote-fecha">${fechaStr}</span>
+        <span class="lote-card-edit">Editar →</span>
+      </div>
+      <div class="lote-sabores">${saboresDetalle}${sinSabores}</div>
+    </button>
+  `;
+}
+
+
+function irAEditar(lote) {
+  window.location.href = `editar.html?lote=${lote}`;
 }
 
 
@@ -473,11 +523,12 @@ function enviarDatos(fecha, lote, materias, jarras, fechaVto) {
     method: "POST",
     body: JSON.stringify({
       action: "guardar",
+      usuario: sessionStorage.getItem("usuario_logueado") || "",
       fecha,
       lote,
       materiasPrimas: materias,
       jarras,
-      fechaVto: fechaVto.toISOString() // ← enviar como string ISO
+      fechaVto: fechaVto.toISOString()
     })
   })
     .then(res => res.json())

@@ -2,6 +2,8 @@ const URL_APPS_SCRIPT = CONFIG.URL_APPS_SCRIPT;
 const PACKS_POR_JARRA = 6;
 
 let datosLote = null;
+let modoEdicion = false;
+let packsExistentes = {};
 
 
 // =====================================
@@ -13,6 +15,14 @@ window.addEventListener("DOMContentLoaded", () => {
   const fecha  = params.get("fecha");
   const lote   = params.get("lote");
   const jarras = params.get("jarras");
+  const edit   = params.get("edit");
+
+  // Modo edición: ?lote=N&edit=1 → busca lote completo y precarga packs
+  if (edit && lote) {
+    modoEdicion = true;
+    cargarLoteParaEditar(Number(lote));
+    return;
+  }
 
   if (fecha && lote && jarras) {
     try {
@@ -28,6 +38,27 @@ window.addEventListener("DOMContentLoaded", () => {
     mostrarBusqueda();
   }
 });
+
+
+function cargarLoteParaEditar(lote) {
+  fetch(`${URL_APPS_SCRIPT}?action=getLoteCompleto&lote=${lote}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status !== "ok") {
+        mostrarBusqueda();
+        return;
+      }
+      datosLote = { fecha: data.fecha, lote: data.lote, jarras: data.jarras };
+      packsExistentes = data.packs || {};
+      mostrarForm(datosLote);
+      document.getElementById("spinner-overlay").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      // Cambiar título y label
+      document.querySelector("h1").innerHTML = "✏️ Editar Producción";
+      document.querySelector("#submit-area-waffle .btn-submit").textContent = "Guardar cambios";
+    })
+    .catch(() => mostrarBusqueda());
+}
 
 function mostrarBusqueda() {
   document.getElementById("spinner-overlay").style.display = "none";
@@ -148,6 +179,7 @@ function mostrarForm(datos) {
 
   Object.entries(jarras).forEach(([sabor, cantJarras]) => {
     const maxEsperado = cantJarras * PACKS_POR_JARRA;
+    const packsPre = packsExistentes[sabor] || "";
 
     const fila = document.createElement("div");
     fila.classList.add("waffle-fila");
@@ -162,12 +194,19 @@ function mostrarForm(datos) {
         min="0"
         max="${maxEsperado}"
         placeholder="0"
+        value="${packsPre}"
         oninput="calcularProductividad(this, ${cantJarras})"
       >
       <span class="waffle-prod" id="prod-${sabor}">—</span>
     `;
 
     container.appendChild(fila);
+
+    // Calcular productividad inicial si hay valor precargado
+    if (packsPre) {
+      const input = fila.querySelector(".waffle-packs");
+      calcularProductividad(input, cantJarras);
+    }
   });
 }
 
@@ -258,7 +297,8 @@ function guardarWaffles() {
   fetch(URL_APPS_SCRIPT, {
     method: "POST",
     body: JSON.stringify({
-      action: "guardarWaffles",
+      action: modoEdicion ? "editarProduccion" : "guardarWaffles",
+      usuario: sessionStorage.getItem("usuario_logueado") || "",
       fecha: datosLote.fecha,
       lote: datosLote.lote,
       waffles

@@ -622,6 +622,134 @@ select.campo-input {
 }
 
 /* ========================
+   ÚLTIMOS LOTES (HOME)
+   ======================== */
+.ultimos-desc {
+  font-size: 0.85rem;
+  color: var(--color-text-soft);
+  margin-top: -8px;
+}
+
+.ultimos-lotes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ultimos-vacio {
+  text-align: center;
+  color: var(--color-text-soft);
+  font-size: 0.9rem;
+  padding: 12px;
+}
+
+.lote-card {
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--font);
+}
+
+.lote-card:active {
+  background: var(--color-primary-light);
+  border-color: var(--color-accent);
+}
+
+.lote-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.lote-numero {
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  font-size: 1.05rem;
+}
+
+.lote-fecha {
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
+}
+
+.lote-card-edit {
+  margin-left: auto;
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.lote-sabores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lote-sabor {
+  background: var(--color-primary-light);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  color: var(--color-primary-dark);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lote-sabor-nombre {
+  font-weight: 700;
+}
+
+.lote-sabor-detalle {
+  color: var(--color-text-soft);
+  font-weight: 500;
+}
+
+.lote-sin-detalle {
+  font-size: 0.8rem;
+  color: var(--color-text-soft);
+  font-style: italic;
+}
+
+
+/* ========================
+   EDITAR - IMAGEN ACTUAL
+   ======================== */
+.link-imagen-actual {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  background: var(--color-info-bg);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.link-imagen-actual:active {
+  background: var(--color-primary-light);
+}
+
+.campo-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-soft);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+
+/* ========================
    BUSCAR TABS
    ======================== */
 .buscar-tabs {
