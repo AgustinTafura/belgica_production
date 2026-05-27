@@ -199,7 +199,8 @@ function irAEditar(lote) {
 function irALote() {
   document.getElementById("home-screen").style.display = "none";
   document.getElementById("app").style.display = "block";
-  document.getElementById("fecha").min = hoyStr;
+  // Restricción de fecha mínima (solo desde hoy) desactivada temporalmente:
+  // document.getElementById("fecha").min = hoyStr;
 }
 
 function volverHome() {
