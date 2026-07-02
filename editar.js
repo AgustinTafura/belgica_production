@@ -5,7 +5,7 @@ let datosOriginales = null;
 let contadorMateria = 0;
 let contadorSabor = 0;
 
-const SABORES = ["AV", "CH", "BA", "CO", "CB", "AM", "SA", "VAV"];
+const SABORES = ["AV", "CH", "BA", "CO", "CB", "AM", "SA", "VAV", "PRO"];
 
 const materiasConfig = {
   "AVENA": ["AGROINDISTRIA TRES ARROYOS", "ARROYO SECO DISTRIDIET", "INDUSTRIAS DE AVENA"],
