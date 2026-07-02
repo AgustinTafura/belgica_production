@@ -1,0 +1,326 @@
+const URL_APPS_SCRIPT = CONFIG.URL_APPS_SCRIPT;
+const PACKS_POR_JARRA = 6;
+
+let datosLote = null;
+let modoEdicion = false;
+let packsExistentes = {};
+
+
+// =====================================
+// INIT
+// =====================================
+
+window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const fecha  = params.get("fecha");
+  const lote   = params.get("lote");
+  const jarras = params.get("jarras");
+  const edit   = params.get("edit");
+
+  // Modo edición: ?lote=N&edit=1 → busca lote completo y precarga packs
+  if (edit && lote) {
+    modoEdicion = true;
+    cargarLoteParaEditar(Number(lote));
+    return;
+  }
+
+  if (fecha && lote && jarras) {
+    try {
+      const jarrasObj = JSON.parse(jarras);
+      datosLote = { fecha, lote: Number(lote), jarras: jarrasObj };
+      mostrarForm(datosLote);
+      document.getElementById("spinner-overlay").style.display = "none";
+      document.getElementById("app").style.display = "block";
+    } catch {
+      mostrarBusqueda();
+    }
+  } else {
+    mostrarBusqueda();
+  }
+});
+
+
+function cargarLoteParaEditar(lote) {
+  fetch(`${URL_APPS_SCRIPT}?action=getLoteCompleto&lote=${lote}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status !== "ok") {
+        mostrarBusqueda();
+        return;
+      }
+      datosLote = { fecha: data.fecha, lote: data.lote, jarras: data.jarras };
+      packsExistentes = data.packs || {};
+      mostrarForm(datosLote);
+      document.getElementById("spinner-overlay").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      // Cambiar título y label
+      document.querySelector("h1").innerHTML = "✏️ Editar Producción";
+      document.querySelector("#submit-area-waffle .btn-submit").textContent = "Guardar cambios";
+    })
+    .catch(() => mostrarBusqueda());
+}
+
+function mostrarBusqueda() {
+  document.getElementById("spinner-overlay").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("seccion-buscar").style.display = "block";
+}
+
+
+// =====================================
+// TABS BÚSQUEDA
+// =====================================
+
+function switchTab(tab) {
+  const tabs = document.querySelectorAll(".buscar-tab");
+  tabs.forEach(t => t.classList.remove("activo"));
+
+  document.getElementById("buscar-error").style.display = "none";
+
+  if (tab === "fecha") {
+    document.getElementById("tab-fecha").style.display = "block";
+    document.getElementById("tab-lote").style.display = "none";
+    tabs[0].classList.add("activo");
+  } else {
+    document.getElementById("tab-fecha").style.display = "none";
+    document.getElementById("tab-lote").style.display = "block";
+    tabs[1].classList.add("activo");
+  }
+}
+
+
+// =====================================
+// BUSCAR POR FECHA
+// =====================================
+
+function buscarPorFecha() {
+  const fecha = document.getElementById("input-fecha-buscar").value;
+  const errorDiv = document.getElementById("buscar-error");
+
+  if (!fecha) {
+    errorDiv.textContent = "Seleccioná una fecha.";
+    errorDiv.style.display = "block";
+    return;
+  }
+
+  errorDiv.style.display = "none";
+  buscarProduccion(`${URL_APPS_SCRIPT}?action=getByFecha&fecha=${fecha}`);
+}
+
+
+// =====================================
+// BUSCAR POR LOTE
+// =====================================
+
+function buscarPorLote() {
+  const lote = document.getElementById("input-lote-buscar").value.trim();
+  const errorDiv = document.getElementById("buscar-error");
+
+  if (!lote) {
+    errorDiv.textContent = "Ingresá un número de lote.";
+    errorDiv.style.display = "block";
+    return;
+  }
+
+  errorDiv.style.display = "none";
+  buscarProduccion(`${URL_APPS_SCRIPT}?action=getByLote&lote=${lote}`);
+}
+
+
+// =====================================
+// FETCH COMÚN
+// =====================================
+
+function buscarProduccion(url) {
+  const errorDiv = document.getElementById("buscar-error");
+  document.getElementById("spinner-overlay").style.display = "flex";
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("spinner-overlay").style.display = "none";
+
+      if (data.status === "error") {
+        errorDiv.textContent = data.message || "No se encontró producción.";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      datosLote = { fecha: data.fecha, lote: data.lote, jarras: data.jarras };
+      mostrarForm(datosLote);
+      document.getElementById("seccion-buscar").style.display = "none";
+    })
+    .catch(() => {
+      document.getElementById("spinner-overlay").style.display = "none";
+      errorDiv.textContent = "Error de conexión. Intentá de nuevo.";
+      errorDiv.style.display = "block";
+    });
+}
+
+
+// =====================================
+// MOSTRAR FORM
+// =====================================
+
+function mostrarForm(datos) {
+  const { fecha, lote, jarras } = datos;
+
+  const fechaObj = new Date(fecha + "T12:00:00");
+  const fechaStr = fechaObj.toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
+  document.getElementById("info-lote-waffle").innerHTML =
+    `Lote <strong>#${lote}</strong> — cocinado el <strong>${fechaStr}</strong>`;
+
+  document.getElementById("seccion-info").style.display = "block";
+  document.getElementById("seccion-form").style.display = "block";
+  document.getElementById("submit-area-waffle").style.display = "block";
+
+  const container = document.getElementById("waffle-filas");
+  container.innerHTML = "";
+
+  Object.entries(jarras).forEach(([sabor, cantJarras]) => {
+    const maxEsperado = cantJarras * PACKS_POR_JARRA;
+    const packsPre = packsExistentes[sabor] || "";
+
+    const fila = document.createElement("div");
+    fila.classList.add("waffle-fila");
+    fila.setAttribute("data-sabor", sabor);
+
+    fila.innerHTML = `
+      <span class="waffle-sabor">${sabor}</span>
+      <span class="waffle-jarras">${cantJarras} jarras</span>
+      <input
+        type="number"
+        class="campo-input waffle-packs"
+        min="0"
+        max="${maxEsperado}"
+        placeholder="0"
+        value="${packsPre}"
+        oninput="calcularProductividad(this, ${cantJarras})"
+      >
+      <span class="waffle-prod" id="prod-${sabor}">—</span>
+    `;
+
+    container.appendChild(fila);
+
+    // Calcular productividad inicial si hay valor precargado
+    if (packsPre) {
+      const input = fila.querySelector(".waffle-packs");
+      calcularProductividad(input, cantJarras);
+    }
+  });
+}
+
+
+// =====================================
+// CALCULAR PRODUCTIVIDAD
+// =====================================
+
+function calcularProductividad(input, jarras) {
+  const fila = input.closest(".waffle-fila");
+  const sabor = fila.getAttribute("data-sabor");
+  const packs = Number(input.value);
+  const esperado = jarras * PACKS_POR_JARRA;
+  const prodSpan = document.getElementById(`prod-${sabor}`);
+
+  if (!input.value) {
+    prodSpan.textContent = "—";
+    prodSpan.className = "waffle-prod";
+  } else {
+    const pct = ((packs / esperado) * 100).toFixed(1);
+    prodSpan.textContent = `${pct}%`;
+    prodSpan.className = `waffle-prod ${Number(pct) >= 85 ? "prod-ok" : "prod-baja"}`;
+  }
+
+  calcularTotalProductividad();
+}
+
+function calcularTotalProductividad() {
+  const filas = document.querySelectorAll(".waffle-fila");
+  let totalPacks = 0;
+  let totalEsperado = 0;
+  let completo = true;
+
+  filas.forEach(fila => {
+    const sabor = fila.getAttribute("data-sabor");
+    const jarras = datosLote.jarras[sabor];
+    const packsInput = fila.querySelector(".waffle-packs");
+
+    if (!packsInput.value) { completo = false; return; }
+
+    totalPacks += Number(packsInput.value);
+    totalEsperado += jarras * PACKS_POR_JARRA;
+  });
+
+  const totalSpan = document.getElementById("productividad-total");
+
+  if (!completo || totalEsperado === 0) {
+    totalSpan.textContent = "—";
+    totalSpan.className = "prod-valor";
+    return;
+  }
+
+  const pct = ((totalPacks / totalEsperado) * 100).toFixed(1);
+  totalSpan.textContent = `${pct}%`;
+  totalSpan.className = `prod-valor ${Number(pct) >= 85 ? "prod-ok" : "prod-baja"}`;
+}
+
+
+// =====================================
+// GUARDAR WAFFLES
+// =====================================
+
+function guardarWaffles() {
+  const filas = document.querySelectorAll(".waffle-fila");
+  const waffles = {};
+  let valido = true;
+
+  filas.forEach(fila => {
+    const sabor = fila.getAttribute("data-sabor");
+    const packs = fila.querySelector(".waffle-packs").value;
+    if (packs === "") { valido = false; return; }
+    waffles[sabor] = {
+      jarras: datosLote.jarras[sabor],
+      packs: Number(packs),
+      productividad: ((Number(packs) / (datosLote.jarras[sabor] * PACKS_POR_JARRA)) * 100).toFixed(1)
+    };
+  });
+
+  if (!valido) {
+    alert("Completá los packs efectivos de todos los sabores.");
+    return;
+  }
+
+  const btnGuardar = document.querySelector("#submit-area-waffle .btn-submit");
+  btnGuardar.disabled = true;
+  btnGuardar.textContent = "Guardando...";
+
+  fetch(URL_APPS_SCRIPT, {
+    method: "POST",
+    body: JSON.stringify({
+      action: modoEdicion ? "editarProduccion" : "guardarWaffles",
+      usuario: sessionStorage.getItem("usuario_logueado") || "",
+      fecha: datosLote.fecha,
+      lote: datosLote.lote,
+      waffles
+    })
+  })
+    .then(res => res.json())
+    .then(response => {
+      if (response.status === "error") {
+        document.getElementById("modal-error-msg").textContent =
+          response.message || "Ocurrió un error al guardar la producción.";
+        document.getElementById("modal-error-waffle").style.display = "flex";
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = "Guardar Waffles";
+        return;
+      }
+      document.getElementById("modal-exito-waffle").style.display = "flex";
+    })
+    .catch(() => {
+      document.getElementById("modal-error-msg").textContent =
+        "Error de conexión. Verificá tu internet e intentá de nuevo.";
+      document.getElementById("modal-error-waffle").style.display = "flex";
+      btnGuardar.disabled = false;
+      btnGuardar.textContent = "Guardar Waffles";
+    });
+}
