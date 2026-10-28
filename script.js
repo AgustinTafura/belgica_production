@@ -469,7 +469,7 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
     ((jarras["CO"] || 0) * 200) +
     ((jarras["CB"] || 0) * 200);
   const kgBanana = gramosBanana / 1000;
-  const fechaVto = sumarMesesAjustado(fecha, 7);
+  const fechaVto = sumarMesesAjustado(fecha, 9); //a 9 meses
 
   const bloques = document.querySelectorAll(".materia-bloque");
 
