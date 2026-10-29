@@ -198,6 +198,17 @@ select.campo-input {
   color: var(--color-primary-dark);
 }
 
+.badge-aviso-anio {
+  display: block;
+  background: #fff4d6;
+  border-left: 4px solid #f4a100;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #6b4500;
+}
+
 
 /* ========================
    SABORES DINÁMICOS

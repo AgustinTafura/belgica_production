@@ -57,6 +57,7 @@
   <main class="app-main">
 
     <div id="info-ultimo-lote-home" class="info-lote"></div>
+    <div id="aviso-anio-home" class="info-lote"></div>
 
     <div class="card home-card">
       <h2 class="section-title">¿Qué querés registrar?</h2>
@@ -106,8 +107,10 @@
 
       <div class="campo-grupo">
         <label class="campo-label">Fecha</label>
-        <input type="date" id="fecha" class="campo-input" required>
+        <input type="date" id="fecha" class="campo-input" required onchange="actualizarAvisoAnio()">
       </div>
+
+      <div id="aviso-anio-form" class="info-lote"></div>
 
       <div class="campo-grupo">
         <label class="campo-label">N° Lote</label>
@@ -170,6 +173,8 @@
         <p class="modal-valor" id="modal-vencimiento"></p>
       </div>
     </div>
+
+    <div id="aviso-anio-modal"></div>
 
     <button class="btn-submit" onclick="cerrarModalYEnviar()">Confirmar y guardar →</button>
   </div>

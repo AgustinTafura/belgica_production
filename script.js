@@ -130,6 +130,7 @@ function cargarDatosIniciales() {
 
       document.getElementById("info-ultimo-lote-home").innerHTML = badgeHTML;
       document.getElementById("info-ultimo-lote").innerHTML = badgeHTML;
+      document.getElementById("aviso-anio-home").innerHTML = htmlAvisoAnio(hoy);
 
       document.getElementById("spinner-overlay").style.display = "none";
       document.getElementById("home-screen").style.display = "block";
@@ -201,6 +202,7 @@ function irALote() {
   document.getElementById("app").style.display = "block";
   // Restricción de fecha mínima (solo desde hoy) desactivada temporalmente:
   // document.getElementById("fecha").min = hoyStr;
+  actualizarAvisoAnio();
 }
 
 function volverHome() {
@@ -386,6 +388,40 @@ function sumarMesesAjustado(fechaStr, meses) {
 
 
 // =====================================
+// AVISO CAMBIO DE AÑO EN VENCIMIENTO
+// =====================================
+
+const MESES_VTO = 9;
+const DIAS_AVISO_ANIO = 30;
+
+// Devuelve el año nuevo del vencimiento si el cambio de año ocurrió en los últimos 7 días; si no, null
+function anioNuevoVto(fecha) {
+  const vto = sumarMesesAjustado(fecha, MESES_VTO);
+  const semanaAntes = new Date(fecha);
+  semanaAntes.setDate(semanaAntes.getDate() - DIAS_AVISO_ANIO);
+  const vtoSemanaAntes = sumarMesesAjustado(semanaAntes, MESES_VTO);
+  return vto.getFullYear() !== vtoSemanaAntes.getFullYear() ? vto.getFullYear() : null;
+}
+
+function htmlAvisoAnio(fecha) {
+  const anio = anioNuevoVto(fecha);
+  if (!anio) return "";
+  return `<span class="badge-aviso-anio">⚠️ <strong>Cambio de año en el vencimiento:</strong> los productos de este lote vencen en <strong>${anio}</strong>. Acordate de cambiar el año al poner el vto.</span>`;
+}
+
+function fechaFormulario() {
+  const val = document.getElementById("fecha").value;
+  if (!val) return hoy;
+  const [anio, mes, dia] = val.split("-").map(Number);
+  return new Date(anio, mes - 1, dia);
+}
+
+function actualizarAvisoAnio() {
+  document.getElementById("aviso-anio-form").innerHTML = htmlAvisoAnio(fechaFormulario());
+}
+
+
+// =====================================
 // MODAL PRODUCCIÓN
 // =====================================
 
@@ -393,6 +429,7 @@ function mostrarModalProduccion(kgBanana, fechaVto) {
   document.getElementById("modal-banana").textContent = `${(kgBanana / 0.6).toFixed(2)} kg`;
   document.getElementById("modal-vencimiento").textContent =
   fechaVto.toLocaleDateString("es-AR");
+  document.getElementById("aviso-anio-modal").innerHTML = htmlAvisoAnio(pendingData.fecha);
   document.getElementById("modal-produccion").style.display = "flex";
 }
 
@@ -469,7 +506,7 @@ document.getElementById("formLote").addEventListener("submit", function (e) {
     ((jarras["CO"] || 0) * 200) +
     ((jarras["CB"] || 0) * 200);
   const kgBanana = gramosBanana / 1000;
-  const fechaVto = sumarMesesAjustado(fecha, 9); //a 9 meses
+  const fechaVto = sumarMesesAjustado(fecha, MESES_VTO); //a 9 meses
 
   const bloques = document.querySelectorAll(".materia-bloque");
 
