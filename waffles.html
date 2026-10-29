@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Waffles</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="spinner-overlay">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <p class="spinner-text">Cargando...</p>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <header class="app-header">
+    <div class="header-inner">
+      <h1>🧇 Registro de Waffles</h1>
+      <a href="index.html" class="btn-logout">← Volver</a>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- BUSCAR POR FECHA (si no vienen params) -->
+    <section id="seccion-buscar" class="card" style="display:none;">
+      <h2 class="section-title">🔍 Buscar producción</h2>
+      <p style="color: var(--color-text-soft); font-size:0.9rem;">
+        Buscá por fecha o por número de lote.
+      </p>
+
+      <div class="buscar-tabs">
+        <button class="buscar-tab activo" onclick="switchTab('fecha')">Por fecha</button>
+        <!-- <button class="buscar-tab" onclick="switchTab('lote')">Por lote</button> -->
+      </div>
+
+      <div id="tab-fecha">
+        <div class="campo-grupo">
+          <label class="campo-label">Fecha de producción</label>
+          <input type="date" id="input-fecha-buscar" class="campo-input">
+        </div>
+        <button class="btn-submit" onclick="buscarPorFecha()">Buscar →</button>
+      </div>
+
+      <div id="tab-lote" style="display:none;">
+        <div class="campo-grupo">
+          <label class="campo-label">N° de Lote</label>
+          <input type="number" id="input-lote-buscar" class="campo-input" placeholder="Ej: 105">
+        </div>
+        <button class="btn-submit" onclick="buscarPorLote()">Buscar →</button>
+      </div>
+
+      <div id="buscar-error" class="login-error" style="display:none;"></div>
+    </section>
+
+    <!-- INFO DEL LOTE -->
+    <section id="seccion-info" class="card" style="display:none;">
+      <h2 class="section-title">📋 Datos del Lote</h2>
+      <div id="info-lote-waffle" class="badge-info"></div>
+    </section>
+
+    <!-- FORM WAFFLES -->
+    <section id="seccion-form" class="card" style="display:none;">
+      <h2 class="section-title">🧇 Producción de Waffles</h2>
+      <p class="waffle-desc">Ingresá los packs efectivos por sabor. La productividad se calcula automáticamente.</p>
+
+      <div class="waffle-tabla-header">
+        <span>Sabor</span>
+        <span>Jarras</span>
+        <span>Packs efectivos</span>
+        <span>Productividad</span>
+      </div>
+
+      <div id="waffle-filas"></div>
+
+      <div class="waffle-total-box">
+        <span>Total productividad general</span>
+        <span id="productividad-total" class="prod-valor">—</span>
+      </div>
+    </section>
+
+    <div id="submit-area-waffle" class="submit-area" style="display:none;">
+      <button class="btn-submit" onclick="guardarWaffles()">Guardar Waffles</button>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL ÉXITO WAFFLES -->
+<div id="modal-exito-waffle" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="exito-icono">✅</div>
+    <h2 class="modal-titulo">¡Producción guardada!</h2>
+    <p class="exito-desc">Los waffles del día fueron registrados correctamente.</p>
+    <button class="btn-submit" onclick="window.location.href='index.html'">OK</button>
+  </div>
+</div>
+
+<!-- MODAL ERROR WAFFLES -->
+<div id="modal-error-waffle" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="exito-icono">❌</div>
+    <h2 class="modal-titulo">Error al guardar</h2>
+    <p class="exito-desc" id="modal-error-msg">Ocurrió un error al guardar la producción.</p>
+    <button class="btn-submit" onclick="window.location.href='index.html'">OK</button>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="waffles.js"></script>
+</body>
+</html>
